@@ -1,5 +1,0 @@
-package com.jarlinfonseca.springboot.reactor.app.models;
-
-public class Usuario {
-
-}
