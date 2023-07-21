@@ -28,8 +28,47 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		
-		ejemploUsuarioComentariosFlatMap();
+		ejemploUsuarioComentariosZipWithForma2();
 		
+	}
+	
+	public void ejemploUsuarioComentariosZipWithForma2() {
+		Mono<Usuario> usuarioMono = Mono.fromCallable(()-> new Usuario("John", "Doe"));
+		
+		Mono<Comentarios> comentariosUsuarioMono = Mono.fromCallable(()->{
+			Comentarios comentarios = new Comentarios();
+			comentarios.addComentario("Hola pepe, qué tal!");
+			comentarios.addComentario("Mañana voy a la playa");
+			comentarios.addComentario("Estoy tomando el curso de spring con reactor");
+			return comentarios;
+		});
+		
+		Mono<UsuarioComentarios> usuarioConComentarios = usuarioMono
+				.zipWith(comentariosUsuarioMono)
+				.map(tuple ->{
+					Usuario u = tuple.getT1();
+					Comentarios c = tuple.getT2();
+					return new UsuarioComentarios(u, c);
+				});
+		
+		usuarioConComentarios.subscribe(uc -> log.info(uc.toString()));
+	}
+	
+	public void ejemploUsuarioComentariosZipWith() {
+		Mono<Usuario> usuarioMono = Mono.fromCallable(()-> new Usuario("John", "Doe"));
+		
+		Mono<Comentarios> comentariosUsuarioMono = Mono.fromCallable(()->{
+			Comentarios comentarios = new Comentarios();
+			comentarios.addComentario("Hola pepe, qué tal!");
+			comentarios.addComentario("Mañana voy a la playa");
+			comentarios.addComentario("Estoy tomando el curso de spring con reactor");
+			return comentarios;
+		});
+		
+		Mono<UsuarioComentarios> usuarioConComentarios = usuarioMono
+				.zipWith(comentariosUsuarioMono, (usuario, comentariosUsuario)->new UsuarioComentarios(usuario, comentariosUsuario));
+		
+		usuarioConComentarios.subscribe(uc -> log.info(uc.toString()));
 	}
 	
 	
@@ -44,9 +83,9 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 			return comentarios;
 		});
 		
-		usuarioMono.flatMap(u -> comentariosUsuarioMono
-				.map(c-> new UsuarioComentarios(u, c)))
-		.subscribe(uc -> log.info(uc.toString()));
+		Mono<UsuarioComentarios> usuarioConComentarios = usuarioMono.flatMap(u -> comentariosUsuarioMono
+				.map(c-> new UsuarioComentarios(u, c)));
+		usuarioConComentarios.subscribe(uc -> log.info(uc.toString()));
 	}
 	
 	
