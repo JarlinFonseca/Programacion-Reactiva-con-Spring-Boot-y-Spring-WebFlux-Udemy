@@ -9,7 +9,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.jarlinfonseca.springboot.reactor.app.models.Comentarios;
 import com.jarlinfonseca.springboot.reactor.app.models.Usuario;
+import com.jarlinfonseca.springboot.reactor.app.models.UsuarioComentarios;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,33 +28,45 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		
-		ejemploCollectList();
-		
+		ejemploUsuarioComentariosFlatMap();
 		
 	}
 	
-public void ejemploCollectList() throws Exception {
-		
-		List<Usuario> usuariosList = new ArrayList<>();
-		usuariosList.add(new Usuario("Andres", "Fonseca"));
-		usuariosList.add(new Usuario("Pedro", "Fulano"));
-		usuariosList.add(new Usuario("Maria", "Fulana"));
-		usuariosList.add(new Usuario("Diego", "Sultano"));
-		usuariosList.add(new Usuario("Juan", "Mengano"));
-		usuariosList.add(new Usuario("Bruce", "Lee"));
-		usuariosList.add(new Usuario("Bruce", "Willis"));
-		
-		Flux.fromIterable(usuariosList)
-		.collectList()
-		.subscribe(lista -> {
-			lista.forEach(item-> log.info(item.toString()));
-			});
-		
-				
 	
+	public void ejemploUsuarioComentariosFlatMap() {
+		Mono<Usuario> usuarioMono = Mono.fromCallable(()-> new Usuario("John", "Doe"));
 		
+		Mono<Comentarios> comentariosUsuarioMono = Mono.fromCallable(()->{
+			Comentarios comentarios = new Comentarios();
+			comentarios.addComentario("Hola pepe, qué tal!");
+			comentarios.addComentario("Mañana voy a la playa");
+			comentarios.addComentario("Estoy tomando el curso de spring con reactor");
+			return comentarios;
+		});
 		
+		usuarioMono.flatMap(u -> comentariosUsuarioMono
+				.map(c-> new UsuarioComentarios(u, c)))
+		.subscribe(uc -> log.info(uc.toString()));
 	}
+	
+	
+	public void ejemploCollectList() throws Exception {
+			
+			List<Usuario> usuariosList = new ArrayList<>();
+			usuariosList.add(new Usuario("Andres", "Fonseca"));
+			usuariosList.add(new Usuario("Pedro", "Fulano"));
+			usuariosList.add(new Usuario("Maria", "Fulana"));
+			usuariosList.add(new Usuario("Diego", "Sultano"));
+			usuariosList.add(new Usuario("Juan", "Mengano"));
+			usuariosList.add(new Usuario("Bruce", "Lee"));
+			usuariosList.add(new Usuario("Bruce", "Willis"));
+			
+			Flux.fromIterable(usuariosList)
+			.collectList()
+			.subscribe(lista -> {
+				lista.forEach(item-> log.info(item.toString()));
+				});
+		}
 	
 	public void ejemploToString() throws Exception {
 		
